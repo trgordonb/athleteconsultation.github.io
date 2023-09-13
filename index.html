@@ -3,15 +3,27 @@
 <head>
 <meta charset=”UTF-8">
 <meta name=”viewport” content=”width=device-width, initial-scale=1">
-<link rel=”stylesheet” type=”text/css” href=”https:://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.6.2/swagger-ui.css”>
+<link 
+  rel="stylesheet" 
+  href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.6.2/swagger-ui.css" 
+  integrity="sha512-9ZJfeEZ6DAr3pstOThylJAyPbhr+BXMiyPsiCWmozVeJrcInppRXLZ9sUOL64n7H7DHsdDlSCRI3qk5/clvnXA==" 
+  crossorigin="anonymous" 
+  referrerpolicy="no-referrer" 
+/>
 <title>OpenAPI Documentation</title>
-<body><div id=”openapi”><script src=”https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.6.2/swagger-ui-bundle.js”></script>
-<script>
-window.onload = function () {
-  const ui = SwaggerUIBundle({
-    url: 'openapi.yaml',
-    dom_id: '#openapi'
-  })
-}
-</script>
+<body>
+  <div id=”openapi”>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.6.2/swagger-ui.js" 
+      integrity="sha512-0dbWaBHyg1Y4gzx8MdW9EZQLjrdZe2Ckaq1sJP6GMqNTrnY7mSgI39kFrKuObrlqFpzPPMKK5fwTg+T1cyYOkw==" 
+      crossorigin="anonymous" 
+      referrerpolicy="no-referrer">
+    </script>
+    <script>
+    window.onload = function () {
+      const ui = SwaggerUIBundle({
+        url: 'openapi.yaml',
+        dom_id: '#openapi'
+      })
+    }
+    </script>
 </body>
