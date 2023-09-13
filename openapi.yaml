@@ -1,0 +1,733 @@
+openapi: 3.0.3
+info:
+  title: OHBiohealth Athlete Consultation API
+  description: |-
+    This is the API for OH Athlete Consultation data based on the OpenAPI 3.0 specification.  
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: gordon@ohbiohealth.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 2.0.0
+servers:
+  - url: https://linkaiq.xyz/api/athlete-consultation
+tags:
+  - name: Auth
+    description: Operations about users
+  - name: Entity
+    description: Operations about athletes
+  - name: Consultation
+    description: Operations about consultation sessions
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      security:
+        - apikey: []
+      summary: system user login
+      operationId: loginUser
+      description: User authentication
+      requestBody:
+        required: true
+        $ref: '#/components/requestBodies/LogInRequest'
+      responses:
+        '201':
+          description: Successful user authentication
+          content:
+            application/json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    description: Type of message 
+                    example: success
+                  message:
+                    type: string
+                    description: Simple message informing user the request is successfully made
+                    example: Password signin success
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+  /auth/signout:
+    put:
+      tags:
+        - Auth
+      security:
+        - apikey: []
+      summary: Request signout
+      operationId: SignoutUser
+      description: Request signout and removal of session cookies from server
+      responses:
+        '200':
+          description: Successfully remove session cookies from server
+  /sporttypes:
+    get:
+      tags: 
+        - Entity
+      security:
+        - cookieauth: []
+      summary: List sport types
+      operationId: GetSportTypes
+      description: Retrieve a paginated list of types of sports to be used as choices in suboccupation field
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+          description: The numbers of items to return
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: The page to retrieve given the limit params provided (starting from page 1)
+      responses:
+        '200':
+          description: Return result object for sport types query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SportTypes'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+  /entities:
+    get:
+      tags:
+        - Entity
+      security:
+        - cookieauth: []
+      summary: List entity records
+      operationId: GetEntities
+      description: given the user id contained in the cookie session, return the list of entities records created by that user
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: The numbers of items to return
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: The page to retrieve given the limit params provided (starting from page 1)
+      responses:
+        '200':
+          description: Return result object for entity records query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entities'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+    post:
+      tags:
+        - Entity
+      security:
+        - cookieauth: []
+      summary: add entity record
+      operationId: AddEntity
+      description: Create entity record for athletes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Entity'
+      responses:
+        '201':
+          description: Successful record creation for entity
+          content:
+            application/json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    description: Type of message 
+                    example: success
+                  message:
+                    type: string
+                    description: Simple message informing user the request is successfully made
+                    example: New entity successfully created
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+  /entity/{entityId}:
+    get:
+      tags: 
+        - Entity
+      security:
+        - cookieauth: []
+      summary: retrieve entity record by id
+      operationId: GetEntity
+      description: Retrieve entity record for athletes by athlete's entityId if the record is entered by the logged in user
+      parameters:
+        - in: path
+          name: entityId
+          description: EntityId from the result of GetEntities
+          required: true
+          schema:
+            type: string
+            format: ObjectId
+      responses:
+        '200':
+          description: Successful retrieval of entity record
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Entity'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+    put:
+      tags: 
+        - Entity
+      security:
+        - cookieauth: []
+      summary: update entity record
+      operationId: UpdateEntity
+      description: Update entity record for athletes
+      parameters:
+        - in: path
+          name: entityId
+          required: true
+          description: EntityId from the result of GetEntities
+          schema:
+            type: string
+            format: ObjectId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Entity'
+      responses:
+        '200':
+          description: Successful record update for entity
+          content:
+            application/json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    description: Type of message 
+                    example: success
+                  message:
+                    type: string
+                    description: Simple message informing user the request is successfully made
+                    example: Entity successfully updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+  /consultations:
+    get:
+      tags:
+        - Consultation
+      security:
+        - cookieauth: []
+      summary: List consultation records
+      operationId: GetConsultations
+      description: given the user id contained in the cookie session, return the list of consultation records created by that user
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: The numbers of items to return
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: The page to retrieve given the limit params provided (starting from page 1)
+      responses:
+        '200':
+          description: Return result object for consultation records query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Consultations'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+    post:
+      tags:
+        - Consultation
+      security:
+        - cookieauth: []
+      summary: add consultation record
+      operationId: AddConsultation
+      description: Create consultation record for athletes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Consultation'
+      responses:
+        '201':
+          description: Successful record creation for consultation
+          content:
+            application/json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    description: Type of message 
+                    example: success
+                  message:
+                    type: string
+                    description: Simple message informing user the request is successfully made
+                    example: New consultation record successfully created
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+  /consultation/{consultationId}:
+    get:
+      tags: 
+        - Consultation
+      security:
+        - cookieauth: []
+      summary: retrieve consultation record by id
+      operationId: GetConsultation
+      description: Retrieve consultation record for athletes by consultationId if the record is entered by the logged in user
+      parameters:
+        - in: path
+          name: consultationId
+          required: true
+          description: consultationId from the result of GetConsultations
+          schema:
+            type: string
+            format: ObjectId
+      responses:
+        '200':
+          description: Successful retrieval of consultation record
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Consultation'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+    delete:
+      tags: 
+        - Consultation
+      security:
+        - cookieauth: []
+      summary: delete consultation record by id
+      operationId: DeleteConsultation
+      description: Delete consultation record for athletes by consultationId if the record is entered by the logged in user
+      parameters:
+        - in: path
+          name: consultationId
+          required: true
+          description: consultationId from the result of GetConsultation(s)
+          schema:
+            type: string
+            format: ObjectId
+      responses:
+        '200':
+          description: Successful delete of consultation record
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    description: the deleted data
+                    $ref: '#/components/schemas/Consultation'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+    put:
+      tags: 
+        - Consultation
+      security:
+        - cookieauth: []
+      summary: update consultation record
+      operationId: UpdateConsultation
+      description: Update consultation record for athletes
+      parameters:
+        - in: path
+          name: consultationId
+          required: true
+          description: ConsultationId from the result of GetConsultation(s)
+          schema:
+            type: string
+            format: ObjectId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Consultation'
+      responses:
+        '200':
+          description: Successful record update for consultation
+          content:
+            application/json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    description: Type of message 
+                    example: success
+                  message:
+                    type: string
+                    description: Simple message informing user the request is successfully made
+                    example: Consultation successfully updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomError'
+components:
+  schemas:
+    Pagination:
+      description: pagination response parameters
+      required:
+        - total
+        - currentPage
+        - totalPages
+      type: object
+      properties:
+        total:
+          type: integer
+          description: total number of records returned of this query
+          example: 85
+        currentPage:
+          type: integer
+          description: the current page number returned
+          example: 5
+        totalPages:
+          type: integer
+          description: total number pf pages available for retrival of this query
+          example: 9
+    SportType:
+      description: Sport type record to be used as a reference field in Entity object
+      required:
+        - id
+        - name
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          description: internal id for the sport type object
+          example: 64fd49c421d671065f18b54a
+        name:
+          type: string
+          description: common name for the sport type in simplified Chinese
+          example: 羽毛球
+    Entity:
+      required:
+        - name
+        - birthdate
+        - gender
+        - suboccupation
+      description: personal information for an athlete
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          example: 64fd4b3821d671065f18b571
+        name:
+          type: string
+          description: casusal name for the entity
+          example: gordon
+        email:
+          type: string
+          description: email address for the entity
+          example: gordon@ohbiohealth.com
+        mobile:
+          type: string
+          description: mobile number for the entity
+          example: 852-12345678
+        gender:
+          type: string
+          enum:
+            - female
+            - male
+          example: female
+        birthdate:
+          type: string
+          description: birthdate in YYYY-MM-DD
+          format: date
+          example: '2000-01-01'
+        suboccupation:
+          type: string
+          format: ObjectId
+          description: Id of the selected Sport Type field
+          example: 64fd4b3821d671065f18b571
+    Consultation:
+      required:
+        - entity
+        - sessionDate
+        - painScalePreSession
+        - painScalePostSession
+        - painDuration
+        - injuryTime
+        - painLocations
+        - BMLocations
+        - QMLocations
+        - equipmentUsageTime
+      description: igifgiugfrieri
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          example: 64fd4b3821d671065f18b571
+        entity:
+          type: string
+          format: ObjectId
+          description: record id of the selected entity
+          example: 64fd4b3821d671065f18b571
+        sessionDate:
+          type: string
+          description: session date in YYYY-MM-DD
+          format: date
+          example: '2000-01-01'
+        sessionSummary:
+          type: string
+          description: free text describing the general diagnosis of the session
+          example: This is a summary
+        painScalePreSession:
+          type: integer
+          description: Severity of pain before session starts (on the scale of 1 to 10)
+          example: 7
+        painScalePostSession:
+          type: integer
+          description: Severity of pain after session starts (on the scale of 1 to 10)
+          example: 3
+        painDuration:
+          type: integer
+          description: Number of days the athlete has endured the pain
+          example: 10
+        injuryTime:
+          type: string
+          description: the approximate date the injury occured
+          format: date
+          example: '2023-09-09'
+        painLocations:
+          description: a list of body locations with pain
+          type: array
+          items:
+            type: string
+            description: location code in relation to the body diagram, use empty array when there is none
+            example: F6
+          example: ['F6','L2']
+        BMLocations:
+          description: a list of body locations where the BM devices were placed
+          type: array
+          items:
+            type: string
+            description: location code in relation to the body diagram, use empty array when there is none
+            example: F6
+          example: ['F6','L2']
+        QMLocations:
+          description: a list of body locations where the QM devices were placed
+          type: array
+          items:
+            type: string
+            description: location code in relation to the body diagram, use empty array when there is none
+            example: F6
+          example: []
+        sleepQuality:
+          type: string
+          description: free text describing the athlete sleep quality
+          example: The athlete sleeps well
+        appetite:
+          type: string
+          description: free text describing the athlete appetite
+          example: The athlete eats well
+        chronicFatiguePeriod:
+          type: string
+          description: free text describing whether the athlete experience any chronic fatigue
+          example: The athlete get tired after lunch each day
+        stoolCondition:
+          type: string
+          description: free text describing the athlete stool condition
+          example: Nothing special about the stool condition
+        otherAilment:
+          type: string
+          description: free text describing whether the athlete has other ailment
+          example: The athlete has no other ailment reported
+        equipmentUsageTime:
+          type: integer
+          description: The number of minutes the devices were used on the athlete in the session
+          example: 20
+        results:
+          type: string
+          description: free text detailing the result of the session
+          example: The athelete reported pain relived
+        remarks:
+          type: string
+          description: free text the user like to include
+          example: None
+    Consultations:
+      description: Response object for filtere-user consulation records request
+      required:
+        - data
+        - paging
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Consultation'
+        paging:
+          $ref: '#/components/schemas/Pagination'
+    Entities:
+      description: Response object for user-filtered entity records request
+      required:
+        - data
+        - paging
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+        paging:
+          $ref: '#/components/schemas/Pagination'
+    SportTypes:
+      description: Response object for all sport type records request
+      required:
+        - data
+        - paging
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SportType'
+        paging:
+          $ref: '#/components/schemas/Pagination'
+    CustomError:
+      description: Malformed or missing request
+      type: array
+      items:
+        type: object
+        required: 
+          - message
+        properties:
+          message:
+            type: string
+            description: Human-readable error message
+            example: Invalid input
+    NotFoundError:
+      type: object
+      required:
+        - message
+      description: Resource cannot be found with info provided in request
+      properties:
+        message:
+          type: string
+          description: Human-readable error message
+          example: Record not found
+        error:
+          type: object
+          required:
+            - errortype
+            - errorcode
+          properties:
+            errortype:
+              type: string
+              description: Human-readable description of error type
+              example: Not record found matching email in request
+            errorcode:
+              type: string
+              description: Code indicating error type
+              example: notfound-email
+    UnauthorizedError:
+      type: object
+      required:
+        - message
+      description: Authentication information is missing or invalid
+      properties:
+        message:
+          type: string
+          description: Human-readable error message
+          example: You are not authorized
+        error:
+          type: object
+          required:
+            - errortype
+            - errorcode
+          properties:
+            errortype:
+              type: string
+              description: Human-readable description of error type
+              example: OTP incorrect
+            errorcode:
+              type: string
+              description: Code indicating error type
+              example: incorrect-otp
+  requestBodies:
+    LogInRequest:
+      description: A JSON object containing user email and system password
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+                example: gordon@ohbiohealth.com
+              password:
+                type: string
+                example: p@ssword
+  securitySchemes:
+    cookieauth:
+      type: apiKey
+      in: cookie
+      name: SESSION
